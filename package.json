@@ -1,0 +1,28 @@
+{
+  "name": "scenariomind",
+  "version": "1.0.0",
+  "description": "AI Simulation Chat for Scenario Prediction - Multi-agent business scenario analysis",
+  "type": "module",
+  "main": "api/simulate.js",
+  "scripts": {
+    "start": "node api/simulate.js",
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "ai",
+    "multi-agent",
+    "simulation",
+    "scenario-planning",
+    "business-strategy",
+    "groq"
+  ],
+  "author": "Sathish Lella",
+  "license": "MIT",
+  "dependencies": {
+    "groq-sdk": "^0.9.1"
+  },
+  "devDependencies": {
+    "vercel": "^39.0.0"
+  }
+}

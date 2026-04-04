@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ScenarioMind — AI Simulation Chat for Scenario Prediction</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white: #ffffff;
+      --off-white: #fafafa;
+      --gray-50: #f8f9fa;
+      --gray-100: #f1f3f5;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --gray-400: #ced4da;
+      --gray-500: #adb5bd;
+      --gray-600: #868e96;
+      --gray-700: #495057;
+      --gray-800: #343a40;
+      --gray-900: #212529;
+      --black: #0a0a0a;
+      --accent: #000000;
+      --radius: 12px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--off-white);
+      color: var(--gray-900);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-mark {
+      width: 32px; height: 32px;
+      background: var(--black);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 16px; font-weight: 700;
+    }
+    .logo-text { font-size: 17px; font-weight: 700; color: var(--black); letter-spacing: -0.3px; }
+    .logo-sub { font-size: 11px; color: var(--gray-500); font-weight: 400; margin-left: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .tag {
+      font-size: 11px; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px;
+      background: var(--gray-100); color: var(--gray-600);
+      letter-spacing: 0.3px;
+    }
+    .tag-dark { background: var(--black); color: var(--white); }
+
+    /* ── LAYOUT ── */
+    .app {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px 24px;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+    }
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--black);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .card-body { padding: 20px 24px; }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 18px; }
+    .form-group:last-child { margin-bottom: 0; }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      border: 1px solid var(--gray-300);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--gray-900);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--gray-900);
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.04);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* ── AGENT CHIPS ── */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .agent-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 8px;
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: var(--white);
+    }
+    .agent-chip:hover { border-color: var(--gray-400); }
+    .agent-chip.selected {
+      border-color: var(--black);
+      background: var(--gray-50);
+    }
+    .agent-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .agent-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray-900);
+      text-align: center;
+    }
+    .agent-role {
+      font-size: 9px;
+      color: var(--gray-500);
+      text-align: center;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: var(--black);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--gray-800); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--gray-700);
+      border: 1px solid var(--gray-300);
+    }
+    .btn-ghost:hover { background: var(--gray-50); }
+
+    /* ── OUTPUT PANEL ── */
+    .output-panel {
+      min-height: 500px;
+    }
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 400px;
+      color: var(--gray-500);
+      text-align: center;
+      padding: 40px;
+    }
+    .empty-icon {
+      width: 64px; height: 64px;
+      background: var(--gray-100);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+      font-size: 28px;
+    }
+    .empty-title { font-size: 15px; font-weight: 600; color: var(--gray-800); margin-bottom: 4px; }
+    .empty-desc { font-size: 13px; }
+
+    /* ── SIMULATION CHAT ── */
+    .sim-chat {
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .sim-chat-header {
+      background: var(--gray-50);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sim-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .sim-agents-count {
+      font-size: 12px;
+      color: var(--gray-500);
+    }
+    .sim-chat-body {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 16px;
+      background: var(--white);
+    }
+    .msg { margin-bottom: 16px; }
+    .msg:last-child { margin-bottom: 0; }
+    .msg-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .msg-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+    .msg-name { font-size: 13px; font-weight: 600; }
+    .msg-role { font-size: 11px; color: var(--gray-500); }
+    .msg-body {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--gray-800);
+      padding-left: 36px;
+    }
+    .msg-system {
+      text-align: center;
+      color: var(--gray-500);
+      font-size: 12px;
+      padding: 8px 0;
+    }
+    .msg-user .msg-body {
+      background: var(--gray-100);
+      padding: 10px 14px;
+      border-radius: 12px;
+      margin-left: 36px;
+    }
+    .sim-chat-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      gap: 8px;
+    }
+    .send-btn {
+      width: 36px; height: 36px;
+      background: var(--black);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── REPORT CARD ── */
+    .report-card {
+      margin-top: 20px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .report-header {
+      background: var(--gray-50);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .report-title { font-size: 14px; font-weight: 700; }
+    .report-body { padding: 20px; }
+
+    /* ── PREDICTION METER ── */
+    .prediction-meter {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: var(--gray-50);
+      border-radius: 10px;
+    }
+    .meter-circle {
+      width: 64px; height: 64px;
+      background: var(--white);
+      border: 3px solid var(--black);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .meter-val { font-size: 18px; font-weight: 800; }
+    .meter-info h4 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .meter-info p { font-size: 12px; color: var(--gray-600); }
+
+    /* ── OUTCOMES ── */
+    .outcome-row {
+      display: grid;
+      grid-template-columns: 140px 1fr 40px;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .outcome-label { font-size: 12px; color: var(--gray-700); }
+    .outcome-bar-bg {
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .outcome-bar-fill {
+      height: 100%;
+      background: var(--black);
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+    .outcome-pct { font-size: 12px; font-weight: 600; text-align: right; }
+
+    /* ── INSIGHTS ── */
+    .insight-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 12px;
+      background: var(--gray-50);
+      border-radius: 8px;
+    }
+    .insight-num {
+      width: 24px; height: 24px;
+      background: var(--black);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .insight-text { font-size: 13px; line-height: 1.5; color: var(--gray-800); }
+
+    /* ── LOADING ── */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 40px;
+      color: var(--gray-500);
+    }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--gray-200);
+      border-top-color: var(--black);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--black);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 100;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      header { padding: 0 20px; }
+      .agent-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="logo-mark">S</div>
+      <div class="logo-text">ScenarioMind</div>
+      <div class="logo-sub">AI Simulation Chat</div>
+    </div>
+    <div class="header-right">
+      <span class="tag">Powered by Groq</span>
+      <span class="tag tag-dark">Live API</span>
+    </div>
+  </header>
+
+  <div class="app">
+    <!-- LEFT: Configuration -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Scenario Configuration</div>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label>Scenario Question</label>
+          <textarea id="scenario" placeholder="What happens if we...">What happens if we raise our Enterprise plan price from $499/mo to $625/mo (+25%) next quarter?</textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Domain</label>
+          <select id="domain">
+            <option value="pricing" selected>Pricing Strategy</option>
+            <option value="product-launch">Product Launch</option>
+            <option value="business-strategy">Business Strategy</option>
+            <option value="crisis">Crisis Management</option>
+            <option value="hiring">Hiring & Talent</option>
+            <option value="marketing">Marketing & Growth</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Time Horizon</label>
+          <select id="timeHorizon">
+            <option value="30d">30 Days</option>
+            <option value="90d" selected>90 Days</option>
+            <option value="6m">6 Months</option>
+            <option value="1y">1 Year</option>
+            <option value="3y">3 Years</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Company Context (Optional)</label>
+          <input type="text" id="company" placeholder="B2B SaaS, $5M ARR, 200 customers..." value="B2B SaaS, $5M ARR, 200 enterprise customers, 8% monthly churn, NPS 62">
+        </div>
+
+        <div class="form-group">
+          <label>Additional Context (Optional)</label>
+          <textarea id="additionalContext" placeholder="Competitors, market conditions, etc...">Top 3 competitors price between $400-$550. We added AI features last month. 40% of revenue from top 20 accounts.</textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Select Agents</label>
+          <div class="agent-grid" id="agentGrid">
+            <!-- Generated by JS -->
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="runBtn" style="width: 100%; margin-top: 8px;">
+          Run Simulation
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Output -->
+    <div class="card output-panel" id="outputPanel">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🔮</div>
+        <div class="empty-title">Ready to Simulate</div>
+        <div class="empty-desc">Configure your scenario and click "Run Simulation" to start the multi-agent analysis.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    // Agent profiles for UI
+    const agentProfiles = {
+      ceo: { name: 'Alex Rivera', role: 'CEO Strategist', initial: 'AR', bg: '#e3f2fd', color: '#1976d2' },
+      customer: { name: 'Priya Shah', role: 'Customer Advocate', initial: 'PS', bg: '#fce4ec', color: '#c2185b' },
+      competitor: { name: 'James Wu', role: 'Competitor Analyst', initial: 'JW', bg: '#f3e5f5', color: '#7b1fa2' },
+      investor: { name: 'Sarah Kim', role: 'Investor Lens', initial: 'SK', bg: '#e8f5e9', color: '#388e3c' },
+      pessimist: { name: 'Marcus Cole', role: "Devil's Advocate", initial: 'MC', bg: '#fff3e0', color: '#f57c00' },
+      data: { name: 'Lena Patel', role: 'Data Scientist', initial: 'LP', bg: '#e0f2f1', color: '#00796b' },
+      legal: { name: 'David Okonkwo', role: 'Legal & Compliance', initial: 'DO', bg: '#efebe9', color: '#5d4037' },
+      media: { name: 'Nina Torres', role: 'Media & PR', initial: 'NT', bg: '#e8eaf6', color: '#303f9f' },
+      employee: { name: 'Ryan Kim', role: 'Employee Voice', initial: 'RK', bg: '#f1f8e9', color: '#689f38' }
+    };
+
+    let selectedAgents = ['ceo', 'customer', 'competitor', 'investor', 'pessimist', 'data'];
+    let currentReport = null;
+
+    // Render agent chips
+    function renderAgentGrid() {
+      const grid = document.getElementById('agentGrid');
+      grid.innerHTML = Object.entries(agentProfiles).map(([key, profile]) => `
+        <div class="agent-chip ${selectedAgents.includes(key) ? 'selected' : ''}" data-key="${key}" onclick="toggleAgent('${key}')">
+          <div class="agent-avatar" style="background: ${profile.bg}; color: ${profile.color}">${profile.initial}</div>
+          <div class="agent-name">${profile.name}</div>
+          <div class="agent-role">${profile.role}</div>
+        </div>
+      `).join('');
+    }
+
+    function toggleAgent(key) {
+      if (selectedAgents.includes(key)) {
+        selectedAgents = selectedAgents.filter(k => k !== key);
+      } else {
+        selectedAgents.push(key);
+      }
+      renderAgentGrid();
+    }
+
+    // Run simulation
+    document.getElementById('runBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('runBtn');
+      const panel = document.getElementById('outputPanel');
+      
+      const request = {
+        scenario: document.getElementById('scenario').value,
+        domain: document.getElementById('domain').value,
+        timeHorizon: document.getElementById('timeHorizon').value,
+        company: document.getElementById('company').value,
+        additionalContext: document.getElementById('additionalContext').value,
+        agents: selectedAgents
+      };
+
+      if (!request.scenario) {
+        showToast('Please enter a scenario');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;"></span> Running...';
+      
+      panel.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <span>Running multi-agent simulation... This may take 30-60 seconds</span>
+        </div>
+      `;
+
+      try {
+        const response = await fetch('/api/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(request)
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.message || err.error || 'Simulation failed');
+        }
+
+        const report = await response.json();
+        currentReport = report;
+        renderSimulation(report);
+        showToast('Simulation complete!');
+      } catch (error) {
+        panel.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⚠️</div>
+            <div class="empty-title">Simulation Failed</div>
+            <div class="empty-desc">${esc(error.message)}</div>
+          </div>
+        `;
+        showToast('Simulation failed: ' + error.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Run Simulation';
+      }
+    });
+
+    function renderSimulation(report) {
+      const panel = document.getElementById('outputPanel');
+      
+      let chatHtml = `<div class="sim-chat">
+        <div class="sim-chat-header">
+          <div class="sim-status"><div class="status-dot"></div><span class="status-text">Simulation Complete</span></div>
+          <div class="sim-agents-count">${report.conversation.length / 2} agents · 2 rounds</div>
+        </div>
+        <div class="sim-chat-body" id="chatBody">`;
+
+      // Group by round for display
+      const round1 = report.conversation.filter(r => r.round === 1);
+      const round2 = report.conversation.filter(r => r.round === 2);
+
+      chatHtml += `<div class="msg msg-system">── Round 1: Individual Analysis ──</div>`;
+      round1.forEach(msg => {
+        const p = agentProfiles[msg.agentKey];
+        chatHtml += renderMessage(msg, p);
+      });
+
+      chatHtml += `<div class="msg msg-system">── Round 2: Cross-Agent Debate ──</div>`;
+      round2.forEach(msg => {
+        const p = agentProfiles[msg.agentKey];
+        chatHtml += renderMessage(msg, p);
+      });
+
+      chatHtml += `<div class="msg msg-system">✅ Simulation complete. Prediction report generated below.</div>`;
+
+      chatHtml += `</div>
+        <div class="sim-chat-footer">
+          <input type="text" id="followUp" placeholder="Ask a follow-up question..." style="margin-bottom:0"/>
+          <button class="send-btn" id="sendFollowUp">&#8593;</button>
+        </div>
+      </div>`;
+
+      // Prediction report
+      let reportHtml = `<div class="report-card">
+        <div class="report-header">
+          <div class="report-title">Prediction Report</div>
+          <button class="btn btn-ghost" id="copyReport" style="font-size:11px;">Copy Markdown</button>
+        </div>
+        <div class="report-body">
+          <div class="prediction-meter">
+            <div class="meter-circle"><div class="meter-val">${report.confidenceScore}%</div></div>
+            <div class="meter-info">
+              <h4>Confidence Score</h4>
+              <p>Based on ${report.conversation.length / 2}-agent simulation with consensus weighting</p>
+            </div>
+          </div>
+          <label style="margin-bottom:12px">Outcome Distribution</label>`;
+
+      report.outcomes.forEach(o => {
+        reportHtml += `<div class="outcome-row">
+          <div class="outcome-label">${esc(o.label)}</div>
+          <div class="outcome-bar-bg"><div class="outcome-bar-fill" style="width:0%" data-w="${o.probability}%"></div></div>
+          <div class="outcome-pct">${o.probability}%</div>
+        </div>`;
+      });
+
+      reportHtml += `<label style="margin-top:20px;margin-bottom:12px">Executive Summary</label>`;
+      reportHtml += `<div style="font-size:13px;line-height:1.6;color:var(--gray-800);margin-bottom:20px;">${esc(report.executiveSummary)}</div>`;
+
+      reportHtml += `<label style="margin-bottom:12px">Key Insights</label>`;
+      report.keyInsights.forEach((ins, i) => {
+        reportHtml += `<div class="insight-item">
+          <div class="insight-num">${i + 1}</div>
+          <div class="insight-text">${esc(ins)}</div>
+        </div>`;
+      });
+
+      reportHtml += `<label style="margin-top:20px;margin-bottom:12px">Recommended Action</label>`;
+      reportHtml += `<div style="font-size:13px;line-height:1.6;color:var(--gray-800);padding:12px;background:var(--gray-50);border-radius:8px;">${esc(report.recommendedAction)}</div>`;
+
+      reportHtml += `</div></div>`;
+
+      panel.innerHTML = chatHtml + reportHtml;
+
+      // Animate bars
+      setTimeout(() => {
+        document.querySelectorAll('.outcome-bar-fill').forEach(el => {
+          el.style.width = el.dataset.w;
+        });
+      }, 100);
+
+      // Setup follow-up
+      document.getElementById('sendFollowUp').addEventListener('click', sendFollowUp);
+      document.getElementById('followUp').addEventListener('keydown', e => {
+        if (e.key === 'Enter') sendFollowUp();
+      });
+
+      // Copy report
+      document.getElementById('copyReport').addEventListener('click', () => {
+        const md = generateMarkdown(report);
+        navigator.clipboard.writeText(md).then(() => showToast('Report copied to clipboard'));
+      });
+
+      // Scroll to bottom
+      setTimeout(() => {
+        const body = document.getElementById('chatBody');
+        body.scrollTop = body.scrollHeight;
+      }, 100);
+    }
+
+    function renderMessage(msg, p) {
+      return `<div class="msg msg-agent">
+        <div class="msg-header">
+          <div class="msg-avatar" style="background:${p.bg};color:${p.color}">${p.initial}</div>
+          <span class="msg-name">${p.name}</span>
+          <span class="msg-role">${p.role}</span>
+        </div>
+        <div class="msg-body">${esc(msg.analysis)}</div>
+      </div>`;
+    }
+
+    async function sendFollowUp() {
+      const input = document.getElementById('followUp');
+      const val = input.value.trim();
+      if (!val || !currentReport) return;
+
+      const body = document.getElementById('chatBody');
+      const sendBtn = document.getElementById('sendFollowUp');
+      
+      body.innerHTML += `<div class="msg msg-user"><div class="msg-body">${esc(val)}</div></div>`;
+      input.value = '';
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;"></span>';
+
+      try {
+        const response = await fetch('/api/followup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ report: currentReport, question: val })
+        });
+
+        if (!response.ok) throw new Error('Failed to get response');
+        
+        const data = await response.json();
+        
+        // Random agent responds
+        const agents = Object.keys(agentProfiles);
+        const randomAgent = agents[Math.floor(Math.random() * agents.length)];
+        const p = agentProfiles[randomAgent];
+        
+        body.innerHTML += `<div class="msg msg-agent">
+          <div class="msg-header">
+            <div class="msg-avatar" style="background:${p.bg};color:${p.color}">${p.initial}</div>
+            <span class="msg-name">${p.name}</span>
+            <span class="msg-role">${p.role}</span>
+          </div>
+          <div class="msg-body">${esc(data.answer)}</div>
+        </div>`;
+      } catch (error) {
+        body.innerHTML += `<div class="msg msg-system">Error: ${esc(error.message)}</div>`;
+      }
+
+      sendBtn.disabled = false;
+      sendBtn.innerHTML = '&#8593;';
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function generateMarkdown(report) {
+      let md = `# ScenarioMind — Prediction Report\n\n`;
+      md += `**Generated:** ${report.generatedAt.slice(0, 19).replace('T', ' ')}\n`;
+      md += `**Confidence:** ${report.confidenceScore}%\n`;
+      md += `**Agents:** ${report.conversation.length / 2}\n\n`;
+      
+      md += `## Scenario\n> ${report.request.scenario}\n\n`;
+      md += `**Domain:** ${report.request.domain} | **Horizon:** ${report.request.timeHorizon}\n\n`;
+      
+      md += `## Executive Summary\n${report.executiveSummary}\n\n`;
+      
+      md += `## Outcome Distribution\n\n`;
+      md += `| Outcome | Probability | Description |\n`;
+      md += `|---------|------------|-------------|\n`;
+      report.outcomes.forEach(o => {
+        md += `| ${o.label} | ${o.probability}% | ${o.description} |\n`;
+      });
+      
+      md += `\n## Key Insights\n\n`;
+      report.keyInsights.forEach((ins, i) => {
+        md += `${i + 1}. ${ins}\n`;
+      });
+      
+      md += `\n## Recommended Action\n${report.recommendedAction}\n`;
+      
+      return md;
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function esc(s) {
+      return s?.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') || '';
+    }
+
+    // Init
+    renderAgentGrid();
+  </script>
+</body>
+</html>
