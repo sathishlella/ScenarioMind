@@ -3,7 +3,7 @@
  * Run a multi-agent simulation and return the prediction report.
  */
 
-import { ScenarioMindAgent } from "../lib/agent.js";
+import { ScenarioMindAgent } from "./../lib/agent.js";
 
 export const config = {
   maxDuration: 60, // 60 seconds for Vercel hobby plan

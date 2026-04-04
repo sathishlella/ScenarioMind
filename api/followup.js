@@ -3,7 +3,7 @@
  * Ask a follow-up question to a completed simulation.
  */
 
-import { ScenarioMindAgent } from "../lib/agent.js";
+import { ScenarioMindAgent } from "./../lib/agent.js";
 
 export const config = {
   maxDuration: 30,
