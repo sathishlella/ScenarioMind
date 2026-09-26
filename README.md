@@ -8,7 +8,7 @@ ScenarioMind is a multi-agent AI simulation platform for business scenario predi
 
 ## 🚀 Deploy to Vercel (One Click)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyourusername%2Fscenariomind&env=GROQ_API_KEY)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsathishlella%2FScenarioMind&env=GROQ_API_KEY)
 
 **Required Environment Variable:**
 - `GROQ_API_KEY` - Get yours free at [console.groq.com/keys](https://console.groq.com/keys)
